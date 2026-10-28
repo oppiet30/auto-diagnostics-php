@@ -41,7 +41,7 @@ Open http://127.0.0.1:8080. For Apache, set the virtual host DocumentRoot to the
 
 ```apache
 <VirtualHost *:80>
-    ServerName auto-diagnostics.local
+    ServerName auto-diagnostics.test
     DocumentRoot /var/www/auto-diagnostics-php/public
     <Directory /var/www/auto-diagnostics-php/public>
         Require all granted
@@ -51,7 +51,9 @@ Open http://127.0.0.1:8080. For Apache, set the virtual host DocumentRoot to the
 </VirtualHost>
 ```
 
-Add your server IP and hostname to the browsing computer's hosts file. On Fedora, give the deployment the appropriate httpd SELinux file labels; when using TCP database access, enable `httpd_can_network_connect_db` if needed. Keep database.php readable only by the deployment owner and PHP service, and use HTTPS for network deployment. No URL rewriting is needed.
+Use `auto-diagnostics.test` for this development site; `.test` is reserved for testing, while `.local` is used by multicast DNS (Avahi/Bonjour).
+
+Add your server IP and `auto-diagnostics.test` to the browsing computer's hosts file, or create an equivalent local DNS record. Then open http://auto-diagnostics.test. The hostname must resolve to the server from each device you use. On Fedora, give the deployment the appropriate httpd SELinux file labels; when using TCP database access, enable `httpd_can_network_connect_db` if needed. Keep database.php readable only by the deployment owner and PHP service, and use HTTPS for network deployment. No URL rewriting is needed.
 
 ## Verify
 
