@@ -1,0 +1,36 @@
+name: PHP checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: test-root
+          MARIADB_DATABASE: auto_diagnostics
+          MARIADB_USER: auto_diagnostics
+          MARIADB_PASSWORD: test-only
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql
+      - run: sudo apt-get update && sudo apt-get install -y mariadb-client
+      - run: find app config public tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Configure and import
+        env:
+          MYSQL_PWD: test-only
+        run: |
+          cp config/database.example.php config/database.php
+          sed -i 's/host=localhost/host=127.0.0.1/; s/CHANGE_ME/test-only/' config/database.php
+          mariadb -h 127.0.0.1 -u auto_diagnostics auto_diagnostics < database/schema.sql
+          mariadb -h 127.0.0.1 -u auto_diagnostics auto_diagnostics < database/seed.sql
+      - run: php tests/engine_test.php
